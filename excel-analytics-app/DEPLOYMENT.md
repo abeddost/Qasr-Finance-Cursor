@@ -69,10 +69,19 @@ After deployment, your app will be available at:
 - **Custom Domain**: Can be configured in Vercel dashboard
 
 ## Troubleshooting
-- If build fails, check the Vercel build logs
-- Ensure all dependencies are in `package.json`
-- Verify TypeScript compilation passes locally
-- Check that all imports are correct
+
+### 404 Error Fix
+If you see a 404 error on Vercel, this is fixed by the updated `vercel.json` configuration:
+- ✅ Rewrites all routes to `index.html` for SPA routing
+- ✅ Added cache headers for better performance
+- ✅ Includes `_redirects` file as backup
+
+### Common Issues
+- **Build fails**: Check Vercel build logs
+- **Dependencies missing**: Ensure all dependencies are in `package.json`
+- **TypeScript errors**: Verify compilation passes locally
+- **Import errors**: Check that all imports are correct
+- **Routing issues**: The `vercel.json` and `_redirects` files handle SPA routing
 
 ## Performance Notes
 - Bundle size is ~917KB (gzipped: ~289KB)
