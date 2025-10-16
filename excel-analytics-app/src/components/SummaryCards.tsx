@@ -1,5 +1,5 @@
 import type { Transaction } from '../utils/excelParser'
-import { DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react'
 
 interface SummaryCardsProps {
   transactions: Transaction[]

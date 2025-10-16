@@ -17,7 +17,7 @@ const BalanceTrendChart = ({ transactions }: BalanceTrendChartProps) => {
     )
 
     let cumulativeBalance = 0
-    const data = sortedTransactions.map((transaction, index) => {
+    const data = sortedTransactions.map((transaction) => {
       cumulativeBalance += transaction.amount
       
       const date = new Date(transaction.date)

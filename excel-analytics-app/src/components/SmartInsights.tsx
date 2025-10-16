@@ -90,7 +90,7 @@ const SmartInsights = ({ transactions }: SmartInsightsProps) => {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {insights.map((insight, index) => (
+        {insights.map((insight) => (
           <div
             key={insight.id}
             className={`border-l-4 ${getInsightBorderColor(insight.type)} bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200`}
