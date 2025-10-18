@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { Upload, FileSpreadsheet, AlertCircle } from 'lucide-react'
-import { parseExcelFile } from '../utils/excelParser'
 import type { Transaction } from '../utils/excelParser'
 
 interface FileUploadProps {
@@ -31,6 +30,8 @@ const FileUpload = ({ onFileUpload }: FileUploadProps) => {
     setError(null)
 
     try {
+      // Dynamically import the Excel parser only when needed
+      const { parseExcelFile } = await import('../utils/excelParser')
       const transactions = await parseExcelFile(file)
       
       if (transactions.length === 0) {

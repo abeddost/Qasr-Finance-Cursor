@@ -19,15 +19,45 @@ const SummaryCards = ({ transactions, allTransactions }: SummaryCardsProps) => {
 
   // Calculate month-over-month changes using all transactions
   const getCurrentMonth = () => {
-    const dates = allTransactions.map(t => new Date(t.date))
-    const latestDate = new Date(Math.max(...dates.map(d => d.getTime())))
-    return `${latestDate.getFullYear()}-${String(latestDate.getMonth() + 1).padStart(2, '0')}`
+    if (allTransactions.length === 0) {
+      // Default to current month if no transactions
+      const now = new Date()
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    }
+    
+    try {
+      const dates = allTransactions
+        .map(t => {
+          const date = new Date(t.date)
+          return isNaN(date.getTime()) ? null : date
+        })
+        .filter((date): date is Date => date !== null)
+      
+      if (dates.length === 0) {
+        const now = new Date()
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+      }
+      
+      const latestDate = new Date(Math.max(...dates.map(d => d.getTime())))
+      return `${latestDate.getFullYear()}-${String(latestDate.getMonth() + 1).padStart(2, '0')}`
+    } catch (error) {
+      console.warn('Error calculating current month:', error)
+      const now = new Date()
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    }
   }
 
   const getPreviousMonth = (currentMonth: string) => {
-    const [year, month] = currentMonth.split('-').map(Number)
-    const prevDate = new Date(year, month - 2, 1) // month - 1 - 1 = month - 2
-    return `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+    try {
+      const [year, month] = currentMonth.split('-').map(Number)
+      const prevDate = new Date(year, month - 2, 1) // month - 1 - 1 = month - 2
+      return `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+    } catch (error) {
+      console.warn('Error calculating previous month:', error)
+      const now = new Date()
+      const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      return `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+    }
   }
 
   const currentMonth = getCurrentMonth()

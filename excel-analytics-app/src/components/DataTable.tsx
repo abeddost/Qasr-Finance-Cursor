@@ -21,8 +21,17 @@ const DataTable = ({ transactions }: DataTableProps) => {
 
       switch (sortField) {
         case 'date':
-          aValue = new Date(a.date)
-          bValue = new Date(b.date)
+          try {
+            aValue = new Date(a.date)
+            bValue = new Date(b.date)
+            // Handle invalid dates
+            if (isNaN(aValue.getTime())) aValue = new Date(0)
+            if (isNaN(bValue.getTime())) bValue = new Date(0)
+          } catch (error) {
+            console.warn('Error parsing dates for sorting:', error)
+            aValue = new Date(0)
+            bValue = new Date(0)
+          }
           break
         case 'description':
           aValue = a.description.toLowerCase()
@@ -75,11 +84,21 @@ const DataTable = ({ transactions }: DataTableProps) => {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date string: ${dateString}`)
+        return 'Invalid Date'
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    } catch (error) {
+      console.warn(`Error formatting date: ${dateString}`, error)
+      return 'Invalid Date'
+    }
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {

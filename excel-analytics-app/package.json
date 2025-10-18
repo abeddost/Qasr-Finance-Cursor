@@ -18,11 +18,12 @@
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.17",
+    "chart.js": "^4.5.1",
     "lucide-react": "^0.545.0",
     "postcss": "^8.4.35",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.2.0",
-    "recharts": "^3.2.1",
     "tailwindcss": "^3.4.1",
     "xlsx": "^0.18.5"
   }

@@ -1,13 +1,23 @@
+import { Suspense, lazy } from 'react'
 import type { Transaction } from '../utils/excelParser'
 import SummaryCards from './SummaryCards'
-import Charts from './Charts'
-import MonthlyComparisonChart from './MonthlyComparisonChart'
-import BalanceTrendChart from './BalanceTrendChart'
+
+// Lazy load heavy chart components
+const Charts = lazy(() => import('./Charts'))
+const MonthlyComparisonChart = lazy(() => import('./MonthlyComparisonChart'))
+const BalanceTrendChart = lazy(() => import('./BalanceTrendChart'))
 
 interface DashboardProps {
   transactions: Transaction[]
   allTransactions: Transaction[]
 }
+
+const ChartSkeleton = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 animate-pulse">
+    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+    <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+  </div>
+)
 
 const Dashboard = ({ transactions, allTransactions }: DashboardProps) => {
   if (transactions.length === 0) {
@@ -24,11 +34,17 @@ const Dashboard = ({ transactions, allTransactions }: DashboardProps) => {
       
       {/* New Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MonthlyComparisonChart transactions={transactions} />
-        <BalanceTrendChart transactions={transactions} />
+        <Suspense fallback={<ChartSkeleton />}>
+          <MonthlyComparisonChart transactions={transactions} />
+        </Suspense>
+        <Suspense fallback={<ChartSkeleton />}>
+          <BalanceTrendChart transactions={transactions} />
+        </Suspense>
       </div>
       
-      <Charts transactions={transactions} />
+      <Suspense fallback={<ChartSkeleton />}>
+        <Charts transactions={transactions} />
+      </Suspense>
     </div>
   )
 }

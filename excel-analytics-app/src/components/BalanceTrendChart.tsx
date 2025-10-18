@@ -1,6 +1,26 @@
 import React from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
 import type { Transaction } from '../utils/excelParser'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+)
 
 interface BalanceTrendChartProps {
   transactions: Transaction[]
@@ -38,6 +58,43 @@ const BalanceTrendChart = ({ transactions }: BalanceTrendChartProps) => {
     return data
   }, [transactions])
 
+  const chartData = {
+    labels: balanceData.map(d => d.date),
+    datasets: [
+      {
+        label: 'Cumulative Balance',
+        data: balanceData.map(d => d.balance),
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.1,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      },
+    ],
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Balance Trend Over Time',
+      },
+    },
+    scales: {
+      y: {
+        ticks: {
+          callback: function(value: any) {
+            return `$${value.toLocaleString()}`
+          }
+        }
+      },
+    },
+  }
+
   if (balanceData.length === 0) {
     return (
       <div className="card">
@@ -57,45 +114,7 @@ const BalanceTrendChart = ({ transactions }: BalanceTrendChartProps) => {
         Balance Trend Over Time
       </h3>
       <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={balanceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis 
-              dataKey="date" 
-              stroke="#6B7280"
-              fontSize={12}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis 
-              stroke="#6B7280"
-              fontSize={12}
-              tickFormatter={(value) => `$${value.toLocaleString()}`}
-            />
-            <Tooltip 
-              formatter={(value: number, name: string) => [
-                `$${value.toLocaleString()}`, 
-                name === 'balance' ? 'Cumulative Balance' : 'Transaction Amount'
-              ]}
-              labelFormatter={(label) => `Date: ${label}`}
-              contentStyle={{
-                backgroundColor: '#1F2937',
-                border: '1px solid #374151',
-                borderRadius: '8px',
-                color: '#F9FAFB'
-              }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="balance" 
-              stroke="#3B82F6" 
-              strokeWidth={2}
-              dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <Line data={chartData} options={options} />
       </div>
     </div>
   )

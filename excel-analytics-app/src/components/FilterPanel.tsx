@@ -33,17 +33,36 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
   // Get available months from transactions
   const availableMonths = Array.from(new Set(
     transactions.map(t => {
-      const date = new Date(t.date)
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-    })
+      try {
+        const date = new Date(t.date)
+        if (isNaN(date.getTime())) {
+          console.warn(`Invalid date in transaction: ${t.date}`)
+          return null
+        }
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      } catch (error) {
+        console.warn(`Error parsing date: ${t.date}`, error)
+        return null
+      }
+    }).filter(Boolean)
   )).sort().map(monthKey => {
-    const [year, month] = monthKey.split('-')
-    const date = new Date(parseInt(year), parseInt(month) - 1, 1)
-    return {
-      key: monthKey,
-      label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    if (!monthKey) return null
+    try {
+      const [year, month] = monthKey.split('-')
+      const date = new Date(parseInt(year), parseInt(month) - 1, 1)
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid month key: ${monthKey}`)
+        return null
+      }
+      return {
+        key: monthKey,
+        label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      }
+    } catch (error) {
+      console.warn(`Error formatting month: ${monthKey}`, error)
+      return null
     }
-  })
+  }).filter((month): month is { key: string; label: string } => month !== null)
 
   const handleFilterChange = (key: keyof typeof filters, value: any) => {
     onFiltersChange({

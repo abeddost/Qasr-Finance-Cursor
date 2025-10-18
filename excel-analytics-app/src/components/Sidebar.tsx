@@ -75,3 +75,5 @@ const Sidebar = ({ currentView, onViewChange, darkMode, onDarkModeToggle }: Side
 
 export default Sidebar
 
+
+

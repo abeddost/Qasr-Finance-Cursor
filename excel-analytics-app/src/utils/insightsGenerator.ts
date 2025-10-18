@@ -25,17 +25,27 @@ export const generateInsights = (transactions: Transaction[]): Insight[] => {
 
   // Group transactions by month
   const monthlyData = transactions.reduce((acc, t) => {
-    const month = new Date(t.date).toISOString().slice(0, 7) // YYYY-MM
-    if (!acc[month]) {
-      acc[month] = { income: 0, expenses: 0, count: 0 }
+    try {
+      const date = new Date(t.date)
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date in transaction: ${t.date}`)
+        return acc
+      }
+      
+      const month = date.toISOString().slice(0, 7) // YYYY-MM
+      if (!acc[month]) {
+        acc[month] = { income: 0, expenses: 0, count: 0 }
+      }
+      
+      if (t.type === 'income') {
+        acc[month].income += t.amount
+      } else {
+        acc[month].expenses += Math.abs(t.amount)
+      }
+      acc[month].count++
+    } catch (error) {
+      console.warn(`Error processing transaction:`, error)
     }
-    
-    if (t.type === 'income') {
-      acc[month].income += t.amount
-    } else {
-      acc[month].expenses += Math.abs(t.amount)
-    }
-    acc[month].count++
     
     return acc
   }, {} as Record<string, { income: number; expenses: number; count: number }>)
@@ -112,7 +122,7 @@ export const generateInsights = (transactions: Transaction[]): Insight[] => {
   }
 
   // 2. Top spending partner
-  if (topPartner && topPartner[1] > 0) {
+  if (topPartner && topPartner[1] > 0 && totalExpenses > 0) {
     const percentage = (topPartner[1] / totalExpenses) * 100
     insights.push({
       id: 'top-partner',
@@ -126,7 +136,7 @@ export const generateInsights = (transactions: Transaction[]): Insight[] => {
   }
 
   // 3. Top spending category
-  if (topCategory && topCategory[1] > 0) {
+  if (topCategory && topCategory[1] > 0 && totalExpenses > 0) {
     const percentage = (topCategory[1] / totalExpenses) * 100
     insights.push({
       id: 'top-category',
@@ -164,33 +174,42 @@ export const generateInsights = (transactions: Transaction[]): Insight[] => {
 
   // 5. Highest spending day
   if (highestSpendingDay && highestSpendingDay[1] > 0) {
-    const date = new Date(highestSpendingDay[0]).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    })
-    insights.push({
-      id: 'highest-day',
-      type: 'trend',
-      title: 'Highest Spending Day',
-      description: `Your biggest spending day was ${date} with $${highestSpendingDay[1].toLocaleString()}`,
-      value: `$${highestSpendingDay[1].toLocaleString()}`,
-      icon: '📅',
-      color: 'text-orange-600'
-    })
+    try {
+      const date = new Date(highestSpendingDay[0])
+      if (!isNaN(date.getTime())) {
+        const formattedDate = date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric'
+        })
+        insights.push({
+          id: 'highest-day',
+          type: 'trend',
+          title: 'Highest Spending Day',
+          description: `Your biggest spending day was ${formattedDate} with $${highestSpendingDay[1].toLocaleString()}`,
+          value: `$${highestSpendingDay[1].toLocaleString()}`,
+          icon: '📅',
+          color: 'text-orange-600'
+        })
+      }
+    } catch (error) {
+      console.warn('Error formatting highest spending day:', error)
+    }
   }
 
   // 6. Transaction frequency
-  const avgTransactionsPerMonth = transactions.length / months.length
-  if (avgTransactionsPerMonth > 0) {
-    insights.push({
-      id: 'transaction-frequency',
-      type: 'trend',
-      title: 'Transaction Activity',
-      description: `You average ${avgTransactionsPerMonth.toFixed(1)} transactions per month`,
-      value: `${transactions.length} total`,
-      icon: '📊',
-      color: 'text-indigo-600'
-    })
+  if (months.length > 0) {
+    const avgTransactionsPerMonth = transactions.length / months.length
+    if (avgTransactionsPerMonth > 0) {
+      insights.push({
+        id: 'transaction-frequency',
+        type: 'trend',
+        title: 'Transaction Activity',
+        description: `You average ${avgTransactionsPerMonth.toFixed(1)} transactions per month`,
+        value: `${transactions.length} total`,
+        icon: '📊',
+        color: 'text-indigo-600'
+      })
+    }
   }
 
   // 7. Savings rate
@@ -237,4 +256,5 @@ export const generateInsights = (transactions: Transaction[]): Insight[] => {
   const priorityOrder = { achievement: 0, trend: 1, recommendation: 2, warning: 3 }
   return insights.sort((a, b) => priorityOrder[a.type] - priorityOrder[b.type])
 }
+
 

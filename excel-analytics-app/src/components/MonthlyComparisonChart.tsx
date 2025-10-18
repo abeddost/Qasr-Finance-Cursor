@@ -1,6 +1,24 @@
 import React from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+import { Bar } from 'react-chartjs-2'
 import type { Transaction } from '../utils/excelParser'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+)
 
 interface MonthlyComparisonChartProps {
   transactions: Transaction[]
@@ -32,6 +50,47 @@ const MonthlyComparisonChart = ({ transactions }: MonthlyComparisonChartProps) =
       .sort((a, b) => a.label.localeCompare(b.label))
   }, [transactions])
 
+  const chartData = {
+    labels: monthlyData.map(d => d.label),
+    datasets: [
+      {
+        label: 'Income',
+        data: monthlyData.map(d => d.income),
+        backgroundColor: '#10B981',
+        borderRadius: 4,
+      },
+      {
+        label: 'Expenses',
+        data: monthlyData.map(d => d.expenses),
+        backgroundColor: '#EF4444',
+        borderRadius: 4,
+      },
+    ],
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Monthly Income vs Expenses',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value: any) {
+            return `$${value.toLocaleString()}`
+          }
+        }
+      },
+    },
+  }
+
   if (monthlyData.length === 0) {
     return (
       <div className="card">
@@ -51,51 +110,12 @@ const MonthlyComparisonChart = ({ transactions }: MonthlyComparisonChartProps) =
         Monthly Income vs Expenses
       </h3>
       <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis 
-              dataKey="label" 
-              stroke="#6B7280"
-              fontSize={12}
-            />
-            <YAxis 
-              stroke="#6B7280"
-              fontSize={12}
-              tickFormatter={(value) => `$${value.toLocaleString()}`}
-            />
-            <Tooltip 
-              formatter={(value: number, name: string) => [
-                `$${value.toLocaleString()}`, 
-                name === 'income' ? 'Income' : 'Expenses'
-              ]}
-              labelFormatter={(label) => `Month: ${label}`}
-              contentStyle={{
-                backgroundColor: '#1F2937',
-                border: '1px solid #374151',
-                borderRadius: '8px',
-                color: '#F9FAFB'
-              }}
-            />
-            <Legend />
-            <Bar 
-              dataKey="income" 
-              fill="#10B981" 
-              name="Income"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar 
-              dataKey="expenses" 
-              fill="#EF4444" 
-              name="Expenses"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <Bar data={chartData} options={options} />
       </div>
     </div>
   )
 }
 
 export default MonthlyComparisonChart
+
 
