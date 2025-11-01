@@ -21,8 +21,11 @@ interface FilterPanelProps {
 const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
   
-  // Get unique categories and partners from transactions
-  const categories = Array.from(new Set(transactions.map(t => t.category))).sort()
+  // Categories are now "incoming" (income) and "outgoing" (expense) based on transaction type
+  const categories = [
+    { value: 'incoming', label: 'Incoming', type: 'income' as const },
+    { value: 'outgoing', label: 'Outgoing', type: 'expense' as const }
+  ]
   const partners = Array.from(new Set(transactions.map(t => t.partner))).sort()
   
   // Get amount range from transactions
@@ -71,10 +74,10 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
     })
   }
 
-  const handleCategoryToggle = (category: string) => {
-    const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
-      : [...filters.categories, category]
+  const handleCategoryToggle = (categoryValue: string) => {
+    const newCategories = filters.categories.includes(categoryValue)
+      ? filters.categories.filter(c => c !== categoryValue)
+      : [...filters.categories, categoryValue]
     
     handleFilterChange('categories', newCategories)
   }
@@ -326,14 +329,14 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
             </label>
             <div className="max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-2 dark:bg-gray-700">
               {categories.map(category => (
-                <label key={category} className="flex items-center space-x-2 py-1">
+                <label key={category.value} className="flex items-center space-x-2 py-1">
                   <input
                     type="checkbox"
-                    checked={filters.categories.includes(category)}
-                    onChange={() => handleCategoryToggle(category)}
+                    checked={filters.categories.includes(category.value)}
+                    onChange={() => handleCategoryToggle(category.value)}
                     className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{category}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{category.label}</span>
                 </label>
               ))}
             </div>
@@ -370,11 +373,14 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
                 Partner: {partner}
               </span>
             ))}
-            {filters.categories.map(category => (
-              <span key={category} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
-                {category}
-              </span>
-            ))}
+            {filters.categories.map(categoryValue => {
+              const category = categories.find(c => c.value === categoryValue)
+              return (
+                <span key={categoryValue} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200">
+                  {category ? category.label : categoryValue}
+                </span>
+              )
+            })}
             {filters.minAmount && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
                 Min: ${filters.minAmount}

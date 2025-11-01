@@ -158,9 +158,15 @@ function App() {
       }
     }
 
-    // Apply category filter
+    // Apply category filter (categories are now "incoming" and "outgoing")
+    // Map "incoming" to "income" and "outgoing" to "expense"
     if (newFilters.categories.length > 0) {
-      filtered = filtered.filter(t => newFilters.categories.includes(t.category))
+      const categoryTypes = newFilters.categories.map(cat => {
+        if (cat === 'incoming') return 'income'
+        if (cat === 'outgoing') return 'expense'
+        return cat
+      })
+      filtered = filtered.filter(t => categoryTypes.includes(t.type))
     }
 
     // Apply partner filter

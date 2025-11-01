@@ -38,8 +38,9 @@ const DataTable = ({ transactions }: DataTableProps) => {
           bValue = b.description.toLowerCase()
           break
         case 'category':
-          aValue = a.category.toLowerCase()
-          bValue = b.category.toLowerCase()
+          // Sort by transaction type (income/expense) instead of category
+          aValue = a.type
+          bValue = b.type
           break
         case 'partner':
           aValue = a.partner.toLowerCase()
@@ -197,7 +198,7 @@ const DataTable = ({ transactions }: DataTableProps) => {
                       ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' 
                       : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                   }`}>
-                    {transaction.category}
+                    {transaction.type === 'income' ? 'Incoming' : 'Outgoing'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
