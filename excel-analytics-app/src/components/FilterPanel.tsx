@@ -103,17 +103,50 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
 
   const handleMonthSelect = (monthKey: string) => {
     if (monthKey === '') {
-      handleFilterChange('selectedMonth', '')
+      // Clear month selection and also clear date range
+      onFiltersChange({
+        ...filters,
+        selectedMonth: '',
+        startDate: '',
+        endDate: ''
+      })
       return
     }
     
-    const [year, month] = monthKey.split('-')
-    const startDate = `${year}-${month}-01`
-    const endDate = `${year}-${month}-${new Date(parseInt(year), parseInt(month), 0).getDate()}`
-    
-    handleFilterChange('selectedMonth', monthKey)
-    handleFilterChange('startDate', startDate)
-    handleFilterChange('endDate', endDate)
+    try {
+      const [year, month] = monthKey.split('-')
+      const yearNum = parseInt(year, 10)
+      const monthNum = parseInt(month, 10)
+      
+      // Validate parsed values
+      if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        console.error('Invalid month key:', monthKey)
+        return
+      }
+      
+      // Start date is first day of the month
+      const startDate = `${year}-${month.padStart(2, '0')}-01`
+      
+      // End date is last day of the month
+      // monthNum is 1-12 (1-indexed: 1=Jan, 12=Dec)
+      // JavaScript Date months are 0-indexed (0=Jan, 11=Dec)
+      // new Date(year, month, 0) gives last day of (month - 1)
+      // To get last day of monthNum, we need: new Date(yearNum, monthNum + 1, 0)
+      // Example: monthNum=1 (Jan) -> new Date(2024, 2, 0) = Jan 31 ✓
+      //          monthNum=12 (Dec) -> new Date(2024, 13, 0) = Dec 31 ✓
+      const lastDay = new Date(yearNum, monthNum + 1, 0).getDate()
+      const endDate = `${year}-${month.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+      
+      // Update all three values in a single call
+      onFiltersChange({
+        ...filters,
+        selectedMonth: monthKey,
+        startDate,
+        endDate
+      })
+    } catch (error) {
+      console.error('Error handling month select:', error)
+    }
   }
 
   const hasActiveFilters = filters.search || filters.startDate || filters.endDate || 
@@ -204,7 +237,15 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
             <input
               type="date"
               value={filters.startDate}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
+              onChange={(e) => {
+                const newStartDate = e.target.value
+                // Clear selectedMonth when manually changing start date
+                onFiltersChange({
+                  ...filters,
+                  startDate: newStartDate,
+                  selectedMonth: '' // Clear month selection when manually editing date
+                })
+              }}
               className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
@@ -216,7 +257,15 @@ const FilterPanel = ({ filters, onFiltersChange, transactions }: FilterPanelProp
             <input
               type="date"
               value={filters.endDate}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
+              onChange={(e) => {
+                const newEndDate = e.target.value
+                // Clear selectedMonth when manually changing end date
+                onFiltersChange({
+                  ...filters,
+                  endDate: newEndDate,
+                  selectedMonth: '' // Clear month selection when manually editing date
+                })
+              }}
               className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>

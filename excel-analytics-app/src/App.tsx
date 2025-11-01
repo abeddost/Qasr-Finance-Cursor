@@ -80,7 +80,7 @@ class ErrorBoundary extends React.Component<
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([])
-  const [currentView, setCurrentView] = useState<'dashboard' | 'transactions' | 'insights'>('dashboard')
+  const [currentView, setCurrentView] = useState<'dashboard' | 'insights'>('dashboard')
   const [darkMode, setDarkMode] = useState(false)
   const [filters, setFilters] = useState({
     search: '',
@@ -123,11 +123,39 @@ function App() {
     }
 
     // Apply date range filter
+    // Normalize dates for comparison (handle both YYYY-MM-DD and other formats)
     if (newFilters.startDate) {
-      filtered = filtered.filter(t => new Date(t.date) >= new Date(newFilters.startDate))
+      try {
+        const startDate = new Date(newFilters.startDate + 'T00:00:00')
+        filtered = filtered.filter(t => {
+          try {
+            // Transaction date is already in YYYY-MM-DD format
+            const transDate = new Date(t.date + 'T00:00:00')
+            return !isNaN(transDate.getTime()) && transDate >= startDate
+          } catch {
+            return false
+          }
+        })
+      } catch (error) {
+        console.warn('Error filtering by start date:', error)
+      }
     }
     if (newFilters.endDate) {
-      filtered = filtered.filter(t => new Date(t.date) <= new Date(newFilters.endDate))
+      try {
+        // Set end date to end of day (23:59:59) to include the entire day
+        const endDate = new Date(newFilters.endDate + 'T23:59:59')
+        filtered = filtered.filter(t => {
+          try {
+            // Transaction date is already in YYYY-MM-DD format
+            const transDate = new Date(t.date + 'T00:00:00')
+            return !isNaN(transDate.getTime()) && transDate <= endDate
+          } catch {
+            return false
+          }
+        })
+      } catch (error) {
+        console.warn('Error filtering by end date:', error)
+      }
     }
 
     // Apply category filter
@@ -190,7 +218,7 @@ function App() {
               </>
             ) : (
               <>
-                {/* Dashboard View */}
+                {/* Dashboard View - Combined with Transactions */}
                 {currentView === 'dashboard' && (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center">
@@ -214,56 +242,23 @@ function App() {
                       </button>
                     </div>
 
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                        Dashboard Overview
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-6">
-                        Your financial analytics at a glance
-                      </p>
-                    </div>
-
+                    {/* Shared Filter Panel */}
                     <FilterPanel 
                       filters={filters} 
                       onFiltersChange={handleFiltersChange}
                       transactions={transactions}
                     />
 
+                    {/* Dashboard Components */}
                     <Dashboard transactions={filteredTransactions} allTransactions={transactions} />
-                  </div>
-                )}
 
-                {/* Transactions View */}
-                {currentView === 'transactions' && (
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                          Transactions
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
-                          View and manage all your transactions
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setTransactions([])
-                          setFilteredTransactions([])
-                          setCurrentView('dashboard')
-                        }}
-                        className="btn-secondary"
-                      >
-                        Upload New File
-                      </button>
+                    {/* Transactions Table */}
+                    <div className="mt-10">
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                        Transactions
+                      </h3>
+                      <DataTable transactions={filteredTransactions} />
                     </div>
-
-                    <FilterPanel 
-                      filters={filters} 
-                      onFiltersChange={handleFiltersChange}
-                      transactions={transactions}
-                    />
-
-                    <DataTable transactions={filteredTransactions} />
                   </div>
                 )}
 

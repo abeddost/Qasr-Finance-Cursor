@@ -1,8 +1,8 @@
-import { LayoutDashboard, Receipt, Lightbulb, Moon, Sun } from 'lucide-react'
+import { LayoutDashboard, Lightbulb, Moon, Sun } from 'lucide-react'
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'transactions' | 'insights'
-  onViewChange: (view: 'dashboard' | 'transactions' | 'insights') => void
+  currentView: 'dashboard' | 'insights'
+  onViewChange: (view: 'dashboard' | 'insights') => void
   darkMode: boolean
   onDarkModeToggle: () => void
 }
@@ -10,7 +10,6 @@ interface SidebarProps {
 const Sidebar = ({ currentView, onViewChange, darkMode, onDarkModeToggle }: SidebarProps) => {
   const menuItems = [
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'transactions' as const, label: 'Transactions', icon: Receipt },
     { id: 'insights' as const, label: 'Insights', icon: Lightbulb },
   ]
 
